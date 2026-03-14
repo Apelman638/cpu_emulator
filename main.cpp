@@ -299,7 +299,7 @@ void word_machine(uint32_t input) {
             cout << dest << " put " << ((registers_64[dest]<<16) | (input & 0xffff)) << endl;
             break;
         case 1<<1:
-            cout << word_accesser(registers_64[dest]) << endl;
+            cout << "\033[31m" << word_accesser(registers_64[dest]) << "\033[0m" << endl;
             cout << dest << " access " << endl;
             break;
         case 1<<2:
