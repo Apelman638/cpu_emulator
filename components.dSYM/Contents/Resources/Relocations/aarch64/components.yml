@@ -1,0 +1,5 @@
+---
+triple:          'arm64-apple-darwin'
+binary-path:     '/Users/peytonfraser/Desktop/VSCode/computer_logic/components'
+relocations:     []
+...
