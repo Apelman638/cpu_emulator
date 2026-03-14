@@ -38,8 +38,9 @@ for word machine:
 0010
     put = 0000
     access = 0001
-    varset 0010
-    clear 0011
+    0010
+    clear64 0011
+    clear 0100
 
 for control flow:   
 0011
@@ -77,6 +78,13 @@ for lines in contents:
         lines = lines.split("#")[0].strip()
         if not lines:
             continue
+    
+    if 'include' in lines: # this is only read by the assembler
+        tTokens = lines.strip().split()
+        fileToInclude = tTokens[1]
+        with open(fileToInclude+".bin", "r") as f:
+            binary += f.read()
+            break
 
     if 'halt' in lines:
         binary += "00111111000000000000000000000000\n"

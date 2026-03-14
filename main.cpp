@@ -368,7 +368,6 @@ void control_flow(uint32_t input) {
                     MyFile << bitset<32>(instruct_memory[i]).to_string() << endl;
                     i++;
                 }
-            
             } else {
                 cout << "file failed to open" << endl;
             }
