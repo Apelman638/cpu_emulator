@@ -122,14 +122,15 @@ void save_screen() {
         return;
     }
     filename += ".txt";
-    system("mkdir -p .images");
-    std::ofstream Image("./.images/" + filename);
+    system("mkdir -p images");
+    std::ofstream Image("./images/" + filename);
     if (Image.is_open()) {  
         for(int i = 1; i <= WIDTH*HEIGHT; i++) {
             Image << v_memory[i];
             if(i%64 == 0) {
                 Image << std::endl;
-            }
+            } // for some reason at the very end a random number is present
+            // 54532656
         }   
     } else {
         std::cout << "file failed to open" << std::endl;
@@ -144,9 +145,9 @@ void open_image() {
     if(filename == ".cancel") {
         return;
     }
-    system("mkdir -p .images");
+    system("mkdir -p images");
 
-    std::ifstream image("./.images/" + filename + ".txt");   
+    std::ifstream image("./images/" + filename + ".txt");   
     if (!image) {
         std::cerr << "Image not found" << std::endl;
         return;
