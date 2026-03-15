@@ -2,11 +2,14 @@
 #define WIDTH 64
 #define HEIGHT 64
 #include <tuple>
+#include <fstream> 
 
 /*
 im adding this to deal with graphics 
 i need to make it make a screen now, 
 implimenting the functions from there into main should be easy
+
+perhaps make a function that changes the color while its rendering
 */
 
 enum Color{
@@ -60,11 +63,30 @@ void render(int x1, int y1, int x2, int y2, Color c) {
 
 void print_screen() {
     for(int i = 0; i < WIDTH*HEIGHT; i++) {
-    std::cout << v_memory[i];
-    if(i%64 == 0) {
-        std::cout << std::endl;
+        std::cout << v_memory[i];
+        if(i%64 == 0) {
+            std::cout << std::endl;
+        }
     }
 }
+
+void save_screen() {
+    std::string filename;
+    std::cout << "name image: ";
+    std::cin >> filename;
+    filename += ".txt";
+    std::ofstream Image(filename);
+    if (Image.is_open()) {  
+        for(int i = 0; i < WIDTH*HEIGHT; i++) {
+            Image << v_memory[i];
+            if(i%64 == 0) {
+                Image << std::endl;
+            }
+        }   
+    } else {
+        std::cout << "file failed to open" << std::endl;
+    }
+    Image.close();
 }
 
 // for testing, isnt included in the header file
