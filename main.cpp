@@ -3,6 +3,7 @@
 #include <fstream>
 #include <map>
 #include <bitset>
+#include "gpu.h"
 #define SUP_SHIFT 28
 #define FLIP_SHIFT 27
 #define OP_SHIFT 24
@@ -81,8 +82,8 @@ perhaps ill just have it automatically save them
 
 int registers[256] = {0};
 long registers_64[256]; // for very large input (strings)
-uint32_t instruct_memory[1000] = {0};
-uint32_t memory[1000] = {0};
+uint32_t instruct_memory[0x1000] = {0};
+uint32_t memory[0x1000] = {0};
 
 int pc = 0; // program counter
 

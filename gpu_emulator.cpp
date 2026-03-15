@@ -1,0 +1,57 @@
+#include <iostream>
+#define WIDTH 64
+#define HEIGHT 64
+#include <tuple>
+
+/*
+im adding this to deal with graphics 
+i need to make it make a screen now, 
+implimenting the functions from there into main should be easy
+*/
+
+enum Color{
+    WHITE = 0xFFFFFF,
+    BLACK = 0x000000,
+    RED = 0xFF0000,
+    GREEN = 0x008000,
+    BLUE = 0x0000FF
+};
+
+Color v_memory[WIDTH * HEIGHT] = {BLACK};
+
+void set_color(int x, int y, Color c) {
+    if(x < 0 || x >= WIDTH) return;
+    if(y < 0 || y >= HEIGHT) return;
+    v_memory[y*WIDTH + x] = c;
+}
+
+Color get_color(int x, int y) {
+    return (Color)v_memory[WIDTH*y + x];
+}
+
+void draw_rect(int x1, int y1, int x2, int y2, Color c) {
+    render(x1,y1,x2,y2,c);
+}
+
+void draw_line_horizontal(int x1, int x2, int y, Color c) {
+    render(x1,y,x2,y,c);
+}
+
+void draw_line_vertical(int y1, int y2, int x, Color c) {
+    render(x,y1,x,y2,c);
+}
+
+void clear_screen(Color c) {
+    render(0,0,WIDTH-1,HEIGHT-1, c);
+}
+
+void render(int x1, int y1, int x2, int y2, Color c) {
+    if(x1 < 0 || x2 >= WIDTH) return;
+    if(y1 < 0 || y2 >= HEIGHT) return;
+
+    for(int x = x1; x <= x2; x++) {
+        for(int y = y1; y <= y2; y++) {
+            set_color(x,y,c);
+        }
+    }
+}
