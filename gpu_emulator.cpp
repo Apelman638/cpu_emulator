@@ -3,6 +3,7 @@
 #define HEIGHT 64
 #include <tuple>
 #include <fstream> 
+#include <algorithm>
 
 /*
 im adding this to deal with graphics 
@@ -75,7 +76,8 @@ void save_screen() {
     std::cout << "name image: ";
     std::cin >> filename;
     filename += ".txt";
-    std::ofstream Image(filename);
+    system("mkdir -p .images");
+    std::ofstream Image("./.images/" + filename);
     if (Image.is_open()) {  
         for(int i = 0; i < WIDTH*HEIGHT; i++) {
             Image << v_memory[i];
@@ -89,9 +91,31 @@ void save_screen() {
     Image.close();
 }
 
+void open_image() {
+    std::string filename;
+    std::cout << "image to open: ";
+    std::cin >> filename;
+    system("mkdir -p .images");
+
+    std::ifstream image("./.images/" + filename + ".txt");   
+    if (!image) {
+        std::cerr << "Image not found" << std::endl;
+        return;
+    }
+    std::string line;
+    while (std::getline(image, line)) {
+        line.erase(std::remove(line.begin(), line.end(), '\n'), line.end());
+        int j = 0;
+        for(int i = 0; i < line.length()-1; i++, j++) {
+            line[i] -= '0';
+            v_memory[j] = static_cast<Color>(line[i]);
+        }
+    }
+}
+
 // for testing, isnt included in the header file
 int main() {
     draw_rect(5,5,30,30,BLACK);
-    print_screen();
+    save_screen();
     return 0;
 }

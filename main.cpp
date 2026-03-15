@@ -4,6 +4,7 @@
 #include <map>
 #include <bitset>
 #include "gpu.h"
+
 #define SUP_SHIFT 28
 #define FLIP_SHIFT 27
 #define OP_SHIFT 24
@@ -348,7 +349,8 @@ void control_flow(uint32_t input) {
             string filename; 
             cout << "Name file: ";
             cin >> filename;
-            filename += ".bin";
+            system("mkdir -p .bin");
+            filename = "./.bin/" + filename + ".bin";
             cout << "File named: " << filename << endl;
             ofstream MyFile(filename);
             if (MyFile.is_open()) {
@@ -385,7 +387,8 @@ void run_computer() {
     string file_to_run;
     cout << "Run file: "; // chose a .bin file to run
     cin >> file_to_run;
-    ifstream input(file_to_run + ".bin");
+    system("mkdir -p .bin");
+    ifstream input("./.bin/" + file_to_run + ".bin");
     if (!input) {
         cout << "Failed to open file" << endl;
         return;

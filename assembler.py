@@ -1,4 +1,5 @@
 import os
+os.makedirs(".bin", exist_ok=True)
 
 """
 i might have to redo this whole thing honestly. i didnt plan ahead at all and did it piece by piece
@@ -238,7 +239,7 @@ def binary(contents):
 code = binary(assembly)
 print(code)
 
-with open('binary.bin', 'w') as b:
+with open('.bin/binary.bin', 'w') as b:
     b.write(code)
 
 print("done")
