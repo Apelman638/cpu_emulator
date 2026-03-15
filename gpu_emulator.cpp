@@ -15,14 +15,18 @@ perhaps make a function that changes the color while its drawing
 */
 
 enum Color{
-    WHITE,
     BLACK,
     RED,
     GREEN,
-    BLUE
+    YELLOW,
+    BLUE,
+    MAGENTA,
+    CYAN,
+    WHITE
 };
+// color + 30 is the ansi color code
 
-const Color background_color = WHITE;
+const Color background_color = BLACK;
 
 void draw(int x1, int y1, int x2, int y2, Color c);
 
@@ -45,8 +49,14 @@ class Object {
 std::vector<Object> all_objects;
 
 void set_color(int x, int y, Color c) {
-    if(x < 0 || x >= WIDTH) return;
-    if(y < 0 || y >= HEIGHT) return;
+    if(x < 0 || x >= WIDTH) {
+        std::cerr << "Position does not exist" << std::endl;
+        return;
+    }
+    if(y < 0 || y >= HEIGHT) {
+        std::cerr << "Position does not exist" << std::endl;
+        return;
+    }
     v_memory[y*WIDTH + x] = c;
 }
 
@@ -80,8 +90,14 @@ void clear_screen(Color c) {
 }
 
 void draw(int x1, int y1, int x2, int y2, Color c) {
-    if(x1 < 0 || x2 >= WIDTH) return;
-    if(y1 < 0 || y2 >= HEIGHT) return;
+    if(x1 < 0 || x2 >= WIDTH) {
+        std::cerr << "Position does not exist" << std::endl;
+        return;
+    }
+    if(y1 < 0 || y2 >= HEIGHT) {
+        std::cerr << "Position does not exist" << std::endl;
+        return;
+    }
     Object obj; 
     for(int x = x1; x <= x2; x++) {
         for(int y = y1; y <= y2; y++) {
@@ -106,7 +122,15 @@ void move_obj_y(Object &obj, int dy) {
 
 void print_screen() {
     for(int i = 1; i <= WIDTH*HEIGHT; i++) {
+        #if 0
+        std::cout << "\033[" << v_memory[i-1] + 30 << 'm';
         std::cout << v_memory[i-1];
+        std::cout << "\033[0m" << ' ';
+        if(i%64 == 0) {
+            std::cout << std::endl;
+        } 
+        #endif
+        std::cout << v_memory[i-1] << ' ';
         if(i%64 == 0) {
             std::cout << std::endl;
         }
@@ -127,11 +151,18 @@ void save_screen() {
     std::ofstream Image("./images/" + filename);
     if (Image.is_open()) {  
         for(int i = 1; i <= WIDTH*HEIGHT; i++) {
-            Image << v_memory[i-1];
+            #if 0
+            Image << "\033[" << v_memory[i] + 40 << "m  \033[0m";
             if(i%64 == 0) {
                 Image << std::endl;
-            } // for some reason at the very end a random number is present
-            // 54532656
+            } 
+            #endif
+            #if 1
+            Image << v_memory[i-1] << ' ';
+            if(i%64 == 0) {
+                Image << std::endl;
+            }
+            #endif
         }   
     } else {
         std::cout << "file failed to open" << std::endl;
@@ -139,7 +170,8 @@ void save_screen() {
     Image.close();
 }
 
-void open_image() {
+void open_image() { 
+    // DOES NOT WORK
     std::string filename;
     std::cout << "image to open: ";
     std::cin >> filename;
@@ -155,12 +187,11 @@ void open_image() {
         return;
     }
     std::string line;
+    int j = 0;
     while (std::getline(image, line)) {
-        line.erase(std::remove(line.begin(), line.end(), '\n'), line.end());
-        int j = 0;
-        for(int i = 0; i < line.length()-1; i++, j++) {
-            line[i] -= '0';
-            v_memory[j] = static_cast<Color>(line[i]);
+        for(int i = 0; i < line.length(); i++, j++) {
+            int value = line[i] - '0';
+            v_memory[j] = static_cast<Color>(value);
         }
     }
 }
@@ -177,7 +208,10 @@ void update_screen() { // jesus christ its 1230 am
 
 // for testing, isnt included in the header file
 int main() {
-    draw_rect(5,5,30,30,BLACK);
+    #if 1
+    draw_rect(5,5,30,30, BLUE); //whichever object is created first gets is in a lower tier
+    draw_rect(25,25,50,50, RED);
+    draw_rect(27, 12, 40, 45, GREEN);
     print_screen();
     save_screen();
     move_obj_x(all_objects[0], 1);
@@ -185,6 +219,11 @@ int main() {
     update_screen();
     print_screen();
     save_screen();
+    #endif
+    #if 0
+    open_image(); 
+    print_screen();
+    #endif
 
     return 0;
 }
