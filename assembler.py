@@ -9,8 +9,9 @@ print("File exists:", os.path.exists("test.asm"))
 
 print("start")
 with open("test.asm", "r") as f:
-    contents = f.readlines()
-print("Contents read from file:", repr(contents))
+    assembly = f.readlines()
+print("Contents read from file:", repr(assembly))
+
 """
 for alu1:
 0000
@@ -65,11 +66,10 @@ all_ops = ["add","sub","or","and","not","xor","pass","set","grt","less","comp","
 only_dest = ["access","clear","clear64","jmp","access32"]
 
 #perhaps optimize this and turn it into a function.
-def binary():
+def binary(contents):
     addFunc = False
     funcs = {}
     funcBi = ''
-    saving = False
     variables = {}
     binary = ""
     for lines in contents:
@@ -235,7 +235,7 @@ def binary():
 
     return binary
 
-code = binary()
+code = binary(assembly)
 print(code)
 
 with open('binary.bin', 'w') as b:
