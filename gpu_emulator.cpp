@@ -11,7 +11,7 @@ im adding this to deal with graphics
 i need to make it make a screen now, 
 implimenting the functions from there into main should be easy
 
-perhaps make a function that changes the color while its rendering
+perhaps make a function that changes the color while its drawing
 */
 
 enum Color{
@@ -22,7 +22,7 @@ enum Color{
     BLUE
 };
 
-void render(int x1, int y1, int x2, int y2, Color c);
+void draw(int x1, int y1, int x2, int y2, Color c);
 
 Color v_memory[WIDTH * HEIGHT];
 
@@ -53,30 +53,33 @@ Color get_color(int x, int y) {
 }
 
 void draw_rect(int x1, int y1, int x2, int y2, Color c) {
-    render(x1,y1,x2,y2,c);
+    draw(x1,y1,x2,y2,c);
 }
 
 void draw_line_horizontal(int x1, int x2, int y, Color c) {
-    render(x1,y,x2,y,c);
+    draw(x1,y,x2,y,c);
 }
 
 void draw_line_vertical(int y1, int y2, int x, Color c) {
-    render(x,y1,x,y2,c);
+    draw(x,y1,x,y2,c);
 }
 
 void clear_screen(Color c) {
-    render(0,0,WIDTH-1,HEIGHT-1, c);
+    draw(0,0,WIDTH-1,HEIGHT-1, c);
+    all_objects.pop_back();
 }
 
-void render(int x1, int y1, int x2, int y2, Color c) {
+void draw(int x1, int y1, int x2, int y2, Color c) {
     if(x1 < 0 || x2 >= WIDTH) return;
     if(y1 < 0 || y2 >= HEIGHT) return;
-
+    Object obj; 
     for(int x = x1; x <= x2; x++) {
         for(int y = y1; y <= y2; y++) {
             set_color(x,y,c);
+            obj.add_pixels(x,y,c);
         }
     }
+    all_objects.push_back(obj);
 }
 
 void print_screen() {
@@ -128,13 +131,6 @@ void open_image() {
             v_memory[j] = static_cast<Color>(line[i]);
         }
     }
-}
-
-void save_sprite(int x1, int y1, int x2, int y2) { //the regions where the sprite is
-    // for in the future when objects need to move which requires creating objects and
-    // saving where they are 
-    // might make a sprite class? where it saves location and color maybe...
-
 }
 
 // for testing, isnt included in the header file
