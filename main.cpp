@@ -370,6 +370,25 @@ void control_flow(uint32_t input) {
     }
 }
 
+void graphics_control(uint32_t input) {
+    /*add stuff
+    0b 0 000 0000 00000000 00000000 00000000
+      gc  ?   ?       ?        ?        ?
+
+    up to 5 paramters
+    void set_color(int x, int y, Color c);
+    Color get_color(int x, int y);
+    void draw_rect(int x1, int y1, int x2, int y2, Color c);
+    void render(int x1, int y1, int x2, int y2, Color c);
+    void draw_line_horizontal(int x1, int x2, int y, Color c);
+    void draw_line_vertical(int y1, int y2, int x, Color c);
+    void clear_screen(Color c);
+    void print_screen();
+    void save_screen();
+    void open_image();
+    */ 
+}
+
 void cpu(uint32_t input) {
     set_bitsize::byte supOp; 
     supOp.byte = (input>>SUP_SHIFT & 0xF);

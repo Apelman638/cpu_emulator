@@ -1,9 +1,10 @@
 #include <iostream>
-#define WIDTH 64
-#define HEIGHT 64
 #include <tuple>
 #include <fstream> 
 #include <algorithm>
+#include <vector>
+#define WIDTH 64
+#define HEIGHT 64
 
 /*
 im adding this to deal with graphics 
@@ -24,6 +25,22 @@ enum Color{
 void render(int x1, int y1, int x2, int y2, Color c);
 
 Color v_memory[WIDTH * HEIGHT];
+
+struct Pixel {
+    int x;
+    int y;
+    Color c;
+};
+
+class Object {
+    public: 
+        std::vector<Pixel> pixels;
+        void add_pixels(int x, int y, Color c) {
+            pixels.push_back(Pixel{x, y, c});
+        }
+};
+
+std::vector<Object> all_objects;
 
 void set_color(int x, int y, Color c) {
     if(x < 0 || x >= WIDTH) return;
@@ -111,6 +128,13 @@ void open_image() {
             v_memory[j] = static_cast<Color>(line[i]);
         }
     }
+}
+
+void save_sprite(int x1, int y1, int x2, int y2) { //the regions where the sprite is
+    // for in the future when objects need to move which requires creating objects and
+    // saving where they are 
+    // might make a sprite class? where it saves location and color maybe...
+
 }
 
 // for testing, isnt included in the header file

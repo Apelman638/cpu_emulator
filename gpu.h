@@ -21,5 +21,8 @@ void render(int x1, int y1, int x2, int y2, Color c);
 void draw_line_horizontal(int x1, int x2, int y, Color c);
 void draw_line_vertical(int y1, int y2, int x, Color c);
 void clear_screen(Color c);
+void print_screen();
+void save_screen();
+void open_image();
 
 #endif 
