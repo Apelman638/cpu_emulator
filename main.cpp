@@ -353,7 +353,7 @@ void control_flow(uint32_t input) {
                 cout << "canceled" << endl;
                 break;
             }
-            system("mkdir -p .bin");
+            system("mkdir -p bin");
             filename = "./bin/" + filename + ".bin";
             cout << "File named: " << filename << endl;
             ofstream MyFile(filename);
@@ -417,7 +417,7 @@ void run_computer() {
         cout << "canceled" << endl;
         return;
     }
-    system("mkdir -p .bin");
+    system("mkdir -p bin");
     ifstream input("./bin/" + file_to_run + ".bin");
     if (!input) {
         cout << "Failed to open file" << endl;

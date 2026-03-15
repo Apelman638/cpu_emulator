@@ -239,7 +239,7 @@ def binary(contents):
 code = binary(assembly)
 print(code)
 
-with open('.bin/binary.bin', 'w') as b:
+with open('bin/binary.bin', 'w') as b:
     b.write(code)
 
 print("done")
