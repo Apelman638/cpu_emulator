@@ -125,7 +125,7 @@ void save_screen() {
     system("mkdir -p .images");
     std::ofstream Image("./.images/" + filename);
     if (Image.is_open()) {  
-        for(int i = 0; i < WIDTH*HEIGHT; i++) {
+        for(int i = 1; i <= WIDTH*HEIGHT; i++) {
             Image << v_memory[i];
             if(i%64 == 0) {
                 Image << std::endl;
@@ -176,10 +176,12 @@ void update_screen() { // jesus christ its 1230 am
 int main() {
     draw_rect(5,5,30,30,BLACK);
     print_screen();
+    save_screen();
     move_obj_x(all_objects[0], 1);
     move_obj_y(all_objects[0], 1);
     update_screen();
     print_screen();
+    save_screen();
 
     return 0;
 }
