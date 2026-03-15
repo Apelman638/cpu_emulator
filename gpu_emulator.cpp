@@ -10,14 +10,16 @@ implimenting the functions from there into main should be easy
 */
 
 enum Color{
-    WHITE = 0xFFFFFF,
-    BLACK = 0x000000,
-    RED = 0xFF0000,
-    GREEN = 0x008000,
-    BLUE = 0x0000FF
+    WHITE,
+    BLACK,
+    RED,
+    GREEN,
+    BLUE
 };
 
-Color v_memory[WIDTH * HEIGHT] = {BLACK};
+void render(int x1, int y1, int x2, int y2, Color c);
+
+Color v_memory[WIDTH * HEIGHT];
 
 void set_color(int x, int y, Color c) {
     if(x < 0 || x >= WIDTH) return;
@@ -54,4 +56,20 @@ void render(int x1, int y1, int x2, int y2, Color c) {
             set_color(x,y,c);
         }
     }
+}
+
+void print_screen() {
+    for(int i = 0; i < WIDTH*HEIGHT; i++) {
+    std::cout << v_memory[i];
+    if(i%64 == 0) {
+        std::cout << std::endl;
+    }
+}
+}
+
+// for testing, isnt included in the header file
+int main() {
+    draw_rect(5,5,30,30,BLACK);
+    print_screen();
+    return 0;
 }

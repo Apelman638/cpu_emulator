@@ -12,7 +12,7 @@ enum Color{
     BLUE = 0x0000FF
 };
 
-extern Color v_memory[WIDTH * HEIGHT];
+Color v_memory[WIDTH * HEIGHT];
 
 void set_color(int x, int y, Color c);
 Color get_color(int x, int y);
