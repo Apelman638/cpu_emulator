@@ -14,7 +14,7 @@
 
 using namespace std;
 
-//logic componets in c++
+//this started as a project making components that use bitwise logic, ended up making a full cpu
 
 int bit_adder(unsigned int a, unsigned int b) {
     int sum1 = a ^ b;
@@ -512,6 +512,7 @@ void run_computer(int debug = 0) {
 
 int main(int argc, char **argv) {
     if (string(argv[1]) == "debug") {
+        cout << "DEBUG MODE" << endl;
         run_computer(1);
         return 0;
     }

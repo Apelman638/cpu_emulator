@@ -16,6 +16,7 @@ perhaps make a function that changes the color while its drawing
 i need to get an actual screen and not terminal
 
 add drawing circle function
+add delete object func
 */
 
 enum Color{
