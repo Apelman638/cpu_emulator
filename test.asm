@@ -1,3 +1,9 @@
-set 0 10
-set 1 20
-add 2 0 1
+bldsc
+
+rect 1 20 20 50 50 
+print
+movx 0 5 
+upd
+print 
+
+savsc

@@ -208,6 +208,7 @@ void update_screen() { // jesus christ its 1230 am
     }
 }
 
+#if 0
 // for testing, isnt included in the header file
 int main() {
     #if 1
@@ -229,3 +230,4 @@ int main() {
 
     return 0;
 }
+#endif

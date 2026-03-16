@@ -15,9 +15,7 @@ enum Color{
     WHITE
 };
 
-Color v_memory[WIDTH * HEIGHT];
-std::vector<Object> all_objects;
-
+extern Color v_memory[WIDTH * HEIGHT];
 
 struct Pixel {
     int x;
@@ -30,6 +28,8 @@ class Object {
         std::vector<Pixel> pixels;
         void add_pixels(int x, int y, Color c);
 };
+
+extern std::vector<Object> all_objects;
 
 void set_color(int x, int y, Color c);
 Color get_color(int x, int y);

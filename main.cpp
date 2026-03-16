@@ -394,8 +394,11 @@ void graphics_control(uint32_t input) {
     void save_screen();
     void open_image();
 
+    1 0101 000 000000 000101 000000 000000
+    1 0111 000 000000 000000 000000 000000
     total of 14, some might not need to be added
     */ 
+    cout << "graphics_control: " << endl;
     set_bitsize::byte i;
     i.byte = (input>>27 & 0xF);
     int op = byte_selector(i);

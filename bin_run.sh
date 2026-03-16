@@ -1,3 +1,3 @@
 #!/bin/bash
-g++ main.cpp -o main
+g++ main.cpp gpu_emulator.cpp -o main
 ./main

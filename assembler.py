@@ -53,6 +53,20 @@ for control flow:
     save = 0100
     access32 = 0101
 
+graphic control:
+    0b1 0000 c x1 y1 x2 y2
+    case 1<<0 : build_screen(); break; 0000 
+    case 1<<1 : draw(x1,y1,x2,y2,cc); break; 0001
+    case 1<<2 : draw_rect(x1,y1,x2,y2,cc); break; 0010
+    case 1<<3 : draw_line_horizontal(x1, x2, y1,cc); break; 0011
+    case 1<<4 : draw_line_vertical(y1,y2,x1,cc); break; 0100
+    case 1<<5 : move_obj_x(all_objects[y1], x1); break; 0101
+    case 1<<6 : move_obj_y(all_objects[x1], y1); break; 0110
+    case 1<<7 : update_screen(); break; 0111
+    case 1<<8 : print_screen(); break; 1000
+    case 1<<9 : save_screen(); break; 1001
+    case 1<<10 : open_image(); break; 1010
+
 add labels
 
 0b 0000 0000 00000000 00000000 00000000
@@ -65,6 +79,9 @@ no_r2 = ['dinc','inc','set','pass','not','lsh','rsh','if','load','str']
 alu_ops = ["add","sub","or","and","not","xor","pass","set","grt","less","comp","inc","dinc","rsh","lsh"]
 all_ops = ["add","sub","or","and","not","xor","pass","set","grt","less","comp","inc","dinc","rsh","lsh","put","access","varset","clear","clear64","jmp","if","load","str"]
 only_dest = ["access","clear","clear64","jmp","access32"]
+
+gpu_ops = ["bldsc", "draw", "rect", "lh", "lv", "movx", "movy", "upd", "print", "savsc", "opnimg"]
+gpu_void = ["bldsc", "upd", "print", "savsc", "opnimg"]
 
 #perhaps optimize this and turn it into a function.
 def binary(contents):
@@ -115,7 +132,7 @@ def binary(contents):
             funcs[tTokens[1]] = funcBi
             funcBi = ""
             continue
-        
+
         cont = False
         # certain ops dont need a value in r2
         if any(o in lines for o in no_r2):
@@ -129,6 +146,111 @@ def binary(contents):
                 tokens[tokens.index(token)] = variables[token]
             continue    
         
+        # assembly to gpu, maybe make it its own function
+        if any(o in lines for o in gpu_ops):
+            line += "1"
+            if tokens[0] == "rep:": # this repeats functions, so the function is 3rd after the rep num
+                repNum = int(tokens[1])
+                op = tokens[2]
+                opI = 2
+                if tokens[2] in funcs.keys(): # checks if its an already saved function
+                    for i in range(repNum): 
+                        binary+=funcs[tokens[2]]
+                continue 
+            else:
+                repNum = 1
+                op = tokens[0]
+                opI = 0
+            if op in gpu_void:
+                match op:
+                    case "bldsc" :
+                        line += "0000"
+                        c = f"{0:03b}"
+                        x1 = f"{0:06b}"
+                        y1 = f"{0:06b}"
+                        x2 = f"{0:06b}"
+                        y2 = f"{0:06b}"                 
+                    case "upd":
+                        line += "0111" 
+                        c = f"{0:03b}"
+                        x1 = f"{0:06b}"
+                        y1 = f"{0:06b}"
+                        x2 = f"{0:06b}"
+                        y2 = f"{0:06b}"         
+                    case "print":
+                        line += "1000" 
+                        c = f"{0:03b}"
+                        x1 = f"{0:06b}"
+                        y1 = f"{0:06b}"
+                        x2 = f"{0:06b}"
+                        y2 = f"{0:06b}"  
+                    case "savsc":
+                        line += "1001"
+                        c = f"{0:03b}"
+                        x1 = f"{0:06b}"
+                        y1 = f"{0:06b}"
+                        x2 = f"{0:06b}"
+                        y2 = f"{0:06b}"  
+                    case "opnimg":
+                        line += "1010"
+                        c = f"{0:03b}"
+                        x1 = f"{0:06b}"
+                        y1 = f"{0:06b}"
+                        x2 = f"{0:06b}"
+                        y2 = f"{0:06b}"  
+            #  0b1 0000 c x1 y1 x2 y2
+            match op:
+                case "draw":
+                    line += "0001"
+                    c = f"{int(tokens[opI+1]):03b}"
+                    x1 = f"{int(tokens[opI+2]):06b}"
+                    y1 = f"{int(tokens[opI+3]):06b}"
+                    x2 = f"{int(tokens[opI+4]):06b}"
+                    y2 = f"{int(tokens[opI+5]):06b}"
+                case "rect":
+                    line += "0010"
+                    c = f"{int(tokens[opI+1]):03b}"
+                    x1 = f"{int(tokens[opI+2]):06b}"
+                    y1 = f"{int(tokens[opI+3]):06b}"
+                    x2 = f"{int(tokens[opI+4]):06b}"
+                    y2 = f"{int(tokens[opI+5]):06b}"
+                case "lh":
+                    line += "0011"
+                    c = f"{int(tokens[opI+1]):03b}"
+                    x1 = f"{int(tokens[opI+2]):06b}"
+                    y1 = f"{int(tokens[opI+3]):06b}" # actually x2 but for consistancy
+                    x2 = f"{int(tokens[opI+2]):06b}" # actually y
+                    y2 = f"{0:06b}" # nothing
+                case "lv":
+                    line += "0100"
+                    c = f"{int(tokens[opI+1]):03b}"
+                    x1 = f"{int(tokens[opI+2]):06b}" # y1
+                    y1 = f"{int(tokens[opI+3]):06b}" # y2
+                    x2 = f"{int(tokens[opI+4]):06b}" # x
+                    y2 = f"{int(tokens[opI+5]):06b}" # nothing
+                case "movx":
+                    line += "0101"
+                    c = f"{0:03b}" # nothing
+                    x1 = f"{int(tokens[opI+1]):06b}" # obj 
+                    y1 = f"{int(tokens[opI+2]):06b}" # dx
+                    x2 = f"{0:06b}" #  nothing
+                    y2 = f"{0:06b}" # nothing                   
+                case "movy":
+                    line += "0110"
+                    c = f"{0:03b}" # nothing
+                    x1 = f"{int(tokens[opI+1]):06b}" # obj 
+                    y1 = f"{int(tokens[opI+2]):06b}" # dy
+                    x2 = f"{0:06b}" #  nothing
+                    y2 = f"{0:06b}" # nothing  
+
+            line += c + x1 + y1 + x2 + y2 + "\n"             
+            for i in range(repNum): 
+                if addFunc:
+                    funcBi+=line
+                    break
+                binary+=line 
+            continue
+
         if len(tokens) <= 0:
             binary += ""
 
@@ -165,6 +287,13 @@ def binary(contents):
             dest = f"{int(tokens[1]):08b}"
             r1 = f"{0:08b}"
             r2 = f"{0:08b}"
+        elif any(p in lines for p in gpu_ops):
+            repNum = 1
+            flip = ''
+            op = ''
+            dest = ''
+            r1 = ''
+            r2 = ''
         else:
             repNum = 1
             flip = '0'
