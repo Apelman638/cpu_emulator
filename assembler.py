@@ -13,11 +13,19 @@ print("Contents read from file:\n", assembly)
 var_list = {}
 funcs_list = {}
 assembly = assembly.split("\n")
+
+print(assembly)
+cleaned = []
 for line in assembly:
+    if ('#' in line):
+        line = line.split('#')[0]
+
+    line = line.strip()
     if line != '':
-        assembly[assembly.index(line)] = line.strip()
-    else:
-        assembly.pop(assembly.index(line))
+        cleaned.append(line)
+
+assembly = cleaned
+
 # works: 
 # ['A = 10;', 'B = 11;', 'C = 29;', 'set 0 5;', 'set 1 5;', 'func test {', 'add 1 0 1;', 'dinc 1 1;', '};', 'rep: A test;', 'access32 1;']
 print(assembly)
