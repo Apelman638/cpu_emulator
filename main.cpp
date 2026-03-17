@@ -384,7 +384,7 @@ void graphics_control(uint32_t input) {
     Color get_color(int x, int y);
     void build_screen();
     void draw_rect(int x1, int y1, int x2, int y2, Color c);
-    void draw(int x1, int y1, int x2, int y2, Color c);
+    removing void draw(int x1, int y1, int x2, int y2, Color c);
     void draw_line_horizontal(int x1, int x2, int y, Color c);
     void draw_line_vertical(int y1, int y2, int x, Color c);
     void clear_screen(Color c);
@@ -416,7 +416,7 @@ void graphics_control(uint32_t input) {
             break;
         case 1<<1 : 
             draw(x1,y1,x2,y2,cc); 
-            cout << "drawing shape " << x2-x1 << " by " << y2-y1 << endl;
+            cout << "function outdated, use rect" << endl;
             break;
         case 1<<2 : 
             draw_rect(x1,x1,x2,y2,cc);
@@ -506,6 +506,7 @@ void run_computer(int debug = 0) {
             cout << "Enter anything to continue" << endl;
             cin >> junk;
             if (junk == ".cancel") {
+                cout << "canceled" << endl;
                 return;
             }
         }   
