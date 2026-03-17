@@ -1,374 +1,167 @@
 import os
+import copy
 os.makedirs("bin", exist_ok=True)
-
-"""
-I am currently remaking this into a more optimized assembler and a more human friendly assembly language.
-"""
 
 print("File exists:", os.path.exists("test.asm"))
 
 print("start")
-with open("test.asm", "r") as f:
-    assembly = f.readlines()
-print("Contents read from file:", repr(assembly))
+with open("new.asm", "r") as f:
+    assembly = f.read()
+print("Contents read from file:\n", assembly)
 
-"""
-for alu1:
-0000
-addition 000
-subtraction 001
-or 010
-and 011
-not 100
-xor 101
-pass 110
+var_list = {}
+funcs_list = {}
+assembly = assembly.split("\n")
+for line in assembly:
+    if line != '':
+        assembly[assembly.index(line)] = line.strip()
+    else:
+        assembly.pop(assembly.index(line))
+# works: 
+# ['A = 10;', 'B = 11;', 'C = 29;', 'set 0 5;', 'set 1 5;', 'func test {', 'add 1 0 1;', 'dinc 1 1;', '};', 'rep: A test;', 'access32 1;']
+print(assembly)
 
-for alu2:
-0001
-    set = 000
-    grt > 001
-    less < 010
-    comp == 011
-    inc +1 100
-    dinc -1 101
-    rsh <<1 110
-    lsh >>1 111
-**no more flip**
+# pass in each line
+def find_vars(line): # works
+    tokens = line.strip().split(' ')
+    if len(tokens) > 1:
+        if tokens[1] == '=':
+            var_list[tokens[0]] = tokens[2].replace(";",'') # assign to variable
+    # this checks all the lines and sees if a variable assignment is here
+    # if so, it gets assigned a key value pair.
 
-for word machine:
-0010
-    put = 0000
-    access = 0001
-    0010
-    clear64 0011
-    clear 0100
+adding_func = False
+pt1 = [] # part 1
+def find_funcs(line):
+    global adding_func
+    global rec_name # recent name
+    tokens = []
+    if "func" in line:
+        tokens = line.split()
+        rec_name = tokens[1]
+        funcs_list[rec_name] = []
+        adding_func = True
+    elif '};' in line:
+        adding_func = False 
+        rec_name = ""
+    elif adding_func:
+        funcs_list[rec_name].append(line.replace(';','')) # isnt working
+    elif not adding_func:
+        pt1.append(line) # removes any lines apart of the function from the code
+        # seems to stop after function declaration ends
 
-for control flow:   
-0011
-    jmp = 0000
-    if = 0001
-    load = 0010
-    str = 0011
-    save = 0100
-    access32 = 0101
-
-graphic control:
-    0b1 0000 c x1 y1 x2 y2
-    case 1<<0 : build_screen(); break; 0000 
-    case 1<<1 : draw(x1,y1,x2,y2,cc); break; 0001
-    case 1<<2 : draw_rect(x1,y1,x2,y2,cc); break; 0010
-    case 1<<3 : draw_line_horizontal(x1, x2, y1,cc); break; 0011
-    case 1<<4 : draw_line_vertical(y1,y2,x1,cc); break; 0100
-    case 1<<5 : move_obj_x(all_objects[y1], x1); break; 0101
-    case 1<<6 : move_obj_y(all_objects[x1], y1); break; 0110
-    case 1<<7 : update_screen(); break; 0111
-    case 1<<8 : print_screen(); break; 1000
-    case 1<<9 : save_screen(); break; 1001
-    case 1<<10 : open_image(); break; 1010
-
-add labels
-
-0b 0000 0000 00000000 00000000 00000000
-  supop  op    dest      r1       r2
-
-maybe a get command that gets a value from a register and puts it into a variable
-"""
-
-no_r2 = ['dinc','inc','set','pass','not','lsh','rsh','if','load','str']
-alu_ops = ["add","sub","or","and","not","xor","pass","set","grt","less","comp","inc","dinc","rsh","lsh"]
-all_ops = ["add","sub","or","and","not","xor","pass","set","grt","less","comp","inc","dinc","rsh","lsh","put","access","varset","clear","clear64","jmp","if","load","str"]
-only_dest = ["access","clear","clear64","jmp","access32"]
-
-gpu_ops = ["bldsc", "draw", "rect", "lh", "lv", "movx", "movy", "upd", "print", "savsc", "opnimg"]
-gpu_void = ["bldsc", "upd", "print", "savsc", "opnimg"]
-
-#perhaps optimize this and turn it into a function.
-def binary(contents):
-    addFunc = False
-    funcs = {}
-    funcBi = ''
-    variables = {}
-    binary = ""
-    for lines in contents:
-        if ('#' in lines):
-            lines = lines.split("#")[0].strip()
-            if not lines:
-                continue
-        
-        if 'include' in lines: # this is only read by the assembler
-            tTokens = lines.strip().split()
-            fileToInclude = tTokens[1]
-            with open(fileToInclude+".bin", "r") as f:
-                binary += f.read()
-                break
-
-        if 'halt' in lines:
-            binary += "00111111000000000000000000000000\n"
-            break
-        line = ""
-        if 'save' in lines:
-            binary += "00110100000000000000000000000000"
-            continue
-
-        if len(lines.strip().split()) <= 0:
-            binary += ""
-            continue
-
-        if '=' in lines:
-            tTokens = lines.strip().split()
-            variables[tTokens[0]] = tTokens[2]
-            continue 
-
-        if ('func' in lines):
-            tTokens = lines.strip().split()
-            funcs[tTokens[1]] = ""
-            addFunc = True
-            continue
-
-        if ('endf' in lines):
-            tTokens = lines.strip().split()
-            addFunc = False
-            funcs[tTokens[1]] = funcBi
-            funcBi = ""
-            continue
-
-        cont = False
-        # certain ops dont need a value in r2
-        if any(o in lines for o in no_r2):
-            r2 = '00000000'
-            cont = True
-        
-        tokens = lines.strip().split()
-
-        for token in tokens:
-            if token in variables.keys():
-                tokens[tokens.index(token)] = variables[token]
-            continue    
-        
-        # assembly to gpu, maybe make it its own function
-        # the way i made this is a better model for the whole function
-        if any(o in lines for o in gpu_ops):
-            line += "1"
-            if tokens[0] == "rep:": # this repeats functions, so the function is 3rd after the rep num
-                repNum = int(tokens[1])
-                op = tokens[2]
-                opI = 2
-                if tokens[2] in funcs.keys(): # checks if its an already saved function
-                    for i in range(repNum): 
-                        binary+=funcs[tokens[2]]
-                continue 
-            else:
-                repNum = 1
-                op = tokens[0]
-                opI = 0
-            if op in gpu_void:
-                match op:
-                    case "bldsc" :
-                        line += "0000"
-                        c = f"{0:03b}"
-                        x1 = f"{0:06b}"
-                        y1 = f"{0:06b}"
-                        x2 = f"{0:06b}"
-                        y2 = f"{0:06b}"                 
-                    case "upd":
-                        line += "0111" 
-                        c = f"{0:03b}"
-                        x1 = f"{0:06b}"
-                        y1 = f"{0:06b}"
-                        x2 = f"{0:06b}"
-                        y2 = f"{0:06b}"         
-                    case "print":
-                        line += "1000" 
-                        c = f"{0:03b}"
-                        x1 = f"{0:06b}"
-                        y1 = f"{0:06b}"
-                        x2 = f"{0:06b}"
-                        y2 = f"{0:06b}"  
-                    case "savsc":
-                        line += "1001"
-                        c = f"{0:03b}"
-                        x1 = f"{0:06b}"
-                        y1 = f"{0:06b}"
-                        x2 = f"{0:06b}"
-                        y2 = f"{0:06b}"  
-                    case "opnimg":
-                        line += "1010"
-                        c = f"{0:03b}"
-                        x1 = f"{0:06b}"
-                        y1 = f"{0:06b}"
-                        x2 = f"{0:06b}"
-                        y2 = f"{0:06b}"  
-            #  0b1 0000 c x1 y1 x2 y2
-            match op:
-                case "draw":
-                    line += "0001"
-                    c = f"{int(tokens[opI+1]):03b}"
-                    x1 = f"{int(tokens[opI+2]):06b}"
-                    y1 = f"{int(tokens[opI+3]):06b}"
-                    x2 = f"{int(tokens[opI+4]):06b}"
-                    y2 = f"{int(tokens[opI+5]):06b}"
-                case "rect":
-                    line += "0010"
-                    c = f"{int(tokens[opI+1]):03b}"
-                    x1 = f"{int(tokens[opI+2]):06b}"
-                    y1 = f"{int(tokens[opI+3]):06b}"
-                    x2 = f"{int(tokens[opI+4]):06b}"
-                    y2 = f"{int(tokens[opI+5]):06b}"
-                case "lh":
-                    line += "0011"
-                    c = f"{int(tokens[opI+1]):03b}"
-                    x1 = f"{int(tokens[opI+2]):06b}"
-                    y1 = f"{int(tokens[opI+3]):06b}" # actually x2 but for consistancy
-                    x2 = f"{int(tokens[opI+2]):06b}" # actually y
-                    y2 = f"{0:06b}" # nothing
-                case "lv":
-                    line += "0100"
-                    c = f"{int(tokens[opI+1]):03b}"
-                    x1 = f"{int(tokens[opI+2]):06b}" # y1
-                    y1 = f"{int(tokens[opI+3]):06b}" # y2
-                    x2 = f"{int(tokens[opI+4]):06b}" # x
-                    y2 = f"{int(tokens[opI+5]):06b}" # nothing
-                case "movx":
-                    line += "0101"
-                    c = f"{0:03b}" # nothing
-                    x1 = f"{int(tokens[opI+1]):06b}" # obj 
-                    y1 = f"{int(tokens[opI+2]):06b}" # dx
-                    x2 = f"{0:06b}" #  nothing
-                    y2 = f"{0:06b}" # nothing                   
-                case "movy":
-                    line += "0110"
-                    c = f"{0:03b}" # nothing
-                    x1 = f"{int(tokens[opI+1]):06b}" # obj 
-                    y1 = f"{int(tokens[opI+2]):06b}" # dy
-                    x2 = f"{0:06b}" #  nothing
-                    y2 = f"{0:06b}" # nothing  
-
-            line += c + x1 + y1 + x2 + y2 + "\n"             
-            for i in range(repNum): 
-                if addFunc:
-                    funcBi+=line
-                    break
-                binary+=line 
-            continue
-
-        if len(tokens) <= 0:
-            binary += ""
-
-        if (tokens[0] == 'flip'):
-            repNum = 1
-            flip = '1'
-            op = tokens[1]
-            dest = f"{int(tokens[2]):08b}"
-            r1 = f"{int(tokens[3]):08b}"
-            if (cont == False): 
-                r2 = f"{int(tokens[4]):08b}"
-        elif tokens[0] == 'rep:':
-            repNum = int(tokens[1])
-            flip = '0'
-            if tokens[2] in funcs.keys():
-                for i in range(repNum): 
-                    binary+=funcs[tokens[2]]
-                continue 
-            op = tokens[2]
-            dest = f"{int(tokens[3]):08b}"
-            r1 = f"{int(tokens[4]):08b}"
-            if (cont == False):
-                r2 = f"{int(tokens[5]):08b}"
-        elif tokens[0] == "varset":
-            variables[tokens[1]] = 0 #get value from register might not be possible with tokenizer
-            # not supported yet
-        elif tokens[0] in funcs.keys():
-            for i in range(repNum): 
-                binary+=funcs[tokens[0]]
-        elif any(o in lines for o in only_dest):
-            repNum = 1
-            flip = '0'
-            op = tokens[0]
-            dest = f"{int(tokens[1]):08b}"
-            r1 = f"{0:08b}"
-            r2 = f"{0:08b}"
-        elif any(p in lines for p in gpu_ops):
-            repNum = 1
-            flip = ''
-            op = ''
-            dest = ''
-            r1 = ''
-            r2 = ''
+final_assembly = []
+def ready_assembly(line): # this replaces all the variable and function names with the proper line
+    final_line = [] # at the end the whole line gets added back together
+    tokens = line.split() # turns each part of the line into a token
+    if "=" in tokens or "func" in tokens or "};" in tokens:
+        return
+    rep_num = 1
+    if "rep:" in tokens:
+        if tokens[1] in var_list:
+            rep_num = int(var_list[tokens[1]]) 
         else:
-            repNum = 1
-            flip = '0'
-            op = tokens[0]
-            dest = f"{int(tokens[1]):08b}"
-            r1 = f"{int(tokens[2]):08b}"
-            if (cont == False):
-                r2 = f"{int(tokens[3]):08b}"
+            rep_num = int(tokens[1])
+    for token in tokens:
+        token = token.replace(';','')
+        if token in var_list: # if the token is a variable
+            final_line.append(var_list[token]) # replaces it with the associated value
+            continue  # not to append twice at the end
+        elif token in funcs_list: # if token is a function name 
+            # needs support for if rep is infront
+            print("function found: ", token)
+            fline_list = []
+            for fline in funcs_list[token]: # since functions are multiple lines
+                fline_list.append(fline)
+            final_assembly.extend(fline_list * rep_num) 
+            return
 
+        for i in range(rep_num):
+            final_line.append(token)
+
+    final_assembly.append(" ".join(final_line))
+
+for line in assembly:
+    find_vars(line)
+for line in assembly:
+    find_funcs(line)
+
+print(funcs_list)
+for line in pt1:
+    ready_assembly(line)
+
+print(final_assembly)
+
+no_r2 = {
+    'dinc':"00010101",'inc':"00010100",'set':"00010000",'pass':"00000110",'not':"00000100",
+    'lsh':"00010111",'rsh':"00010110",'if':"00110001",'load':"00110010",'str':"00110011"
+    } # turn to dict
+other_ops = {"add":"00000000","sub":"00000001","or":"00000010","and":"00000011","not":"00000100","xor":"00000101",
+             "grt":"00010001","less":"00010010","comp":"00010011","put":"00100000"
+             }
+only_dest = {
+    "access":"00100001", "clear":"00100100", "clear64":"00100011", "jmp":"00110000", "access32":"00110101","pass":"00000110"}
+void_ops = {
+    "bldsc":f"1{0:031b}", "upd":f"10111{0:027b}", "print":f"11000{0:027b}", "savsc":f"11001{0:027b}", 
+    "opnimg":f"11010{0:027b}", "halt":"00111111000000000000000000000000", "save":"00110100000000000000000000000000"
+    }
+
+gpu_ops_else = {
+    "draw":"10001", "rect":"10010", "lh":"10011", "lv":"10100", "movx":"10101", "movy":"10110"
+    # draw has 5 params 3 for c 6 for x1 y1 x2 y2
+    # rect has 5 params 3 for c 6 for x1 y1 x2 y2
+    # lh has 4 params, 3 for c x1 x2 y
+    # lv has 4 params, 3 for c y1 y2 x
+    # movx 2 params, obj dx 6 each
+    # movy 2 params, obj dy 6 each 
+    # op + c + ...
+    }
+
+def to_bin(comm) -> str: # this seems to work 
+    line = ''
+    comms = comm.split()
+    op = comms[0]
+    opN = 0
+    if comms[0] in void_ops:
+        line += void_ops[comms[0]]
+        return line + "\n"
+    if op in only_dest:
+        line += only_dest[op] + f"{int(comms[opN+1]):08b}" + f"{0:016b}"
+    if op in no_r2:
+        line += no_r2[op] + f"{int(comms[opN+1]):08b}" + f"{int(comms[opN+2]):08b}" + f"{0:08b}"
+    if op in other_ops:
+        line += other_ops[op] + f"{int(comms[opN+1]):08b}" + f"{int(comms[opN+2]):08b}" + f"{int(comms[opN+3]):08b}"
+    if op in gpu_ops_else:
         match op:
-            case "add":
-                line += "0000" + flip + "000"
-            case "sub":
-                line += "0000" + flip + "001"
-            case "or":
-                line += "0000" + flip + "010"
-            case "and":
-                line += "0000" + flip + "011"
-            case "not":
-                line += "0000" + flip + "100"
-            case "xor":
-                line += "0000" + flip + "101"
-            case "pass":
-                line += "0000" + flip + "110"
-            case "set":
-                line += "0001" + flip + "000"
-            case "grt":
-                line += "0001" + flip + "001"
-            case "less":
-                line += "0001" + flip + "010"
-            case "comp":
-                line += "0001" + flip + "011"
-            case "inc":
-                line += "0001" + flip + "100"
-            case "dinc":
-                line += "0001" + flip + "101"
-            case "rsh":
-                line += "0001" + flip + "110"
-            case "lsh":
-                line += "0001" + flip + "111"
-            case "put":
-                line += "00100000"
-            case "access":
-                line += "00100001"
-            case "varset":
-                line += "00100010"
-                # not supported yet
-            case "clear64":
-                line += "00100011"
-            case "clear":
-                line += "00100100"
-            case "jmp":
-                line += "00110000"
-            case "if":
-                line += "00110001"
-            case "load":
-                line += "00110010"
-            case "str":
-                line += "00110011"
-            case "access32":
-                line += "00110101"
+            case "draw":
+                line += gpu_ops_else["draw"] + f"{int(comms[opN+1]):03b}" + f"{int(comms[opN+2]):06b}" + f"{int(comms[opN+3]):06b}" + f"{int(comms[opN+4]):06b}" + f"{int(comms[opN+5]):06b}"
+    
+            case "rect":
+                line += gpu_ops_else["rect"] + f"{int(comms[opN+1]):03b}" + f"{int(comms[opN+2]):06b}" + f"{int(comms[opN+3]):06b}" + f"{int(comms[opN+4]):06b}" + f"{int(comms[opN+5]):06b}"
+              
+            case "lh":
+                line += gpu_ops_else["lh"] + f"{int(comms[opN+1]):03b}" + f"{int(comms[opN+2]):06b}" + f"{int(comms[opN+3]):06b}" + f"{int(comms[opN+4]):06b}" + f"{0:06b}"
+    
+            case "lv":
+                line += gpu_ops_else["lv"] + f"{int(comms[opN+1]):03b}" + f"{int(comms[opN+2]):06b}" + f"{int(comms[opN+3]):06b}" + f"{int(comms[opN+4]):06b}" + f"{0:06b}"
+    
+            case "movx":
+                line += gpu_ops_else["movx"] + f"{0:03b}" + f"{int(comms[opN+1]):06b}" + f"{int(comms[opN+2]):06b}" + f"{0:06b}" + f"{0:06b}"
+    
+            case "movy":
+                line += gpu_ops_else["movy"] + f"{0:03b}" + f"{int(comms[opN+1]):06b}" + f"{int(comms[opN+2]):06b}" + f"{0:06b}" + f"{0:06b}"
+   
+    line = (line + "\n")
 
-        line += dest + r1 + r2 +  "\n"
-        for i in range(repNum): 
-            if addFunc:
-                funcBi+=line
-                break
-            binary+=line
+    return line
 
-    return binary
+binary = ''
+for line in final_assembly:
+    binary += to_bin(line)
 
-code = binary(assembly)
-print(code)
+print(binary)
 
 with open('bin/binary.bin', 'w') as b:
-    b.write(code)
+    b.write(binary)
 
 print("done")
