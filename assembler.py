@@ -1,6 +1,7 @@
 import os
-import copy
 os.makedirs("bin", exist_ok=True)
+
+# add comment support
 
 print("File exists:", os.path.exists("test.asm"))
 

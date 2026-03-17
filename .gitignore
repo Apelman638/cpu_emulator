@@ -1,5 +1,4 @@
 .vscode/
-archive/
 .venv/
 __pycache__/
 main.dSYM/
